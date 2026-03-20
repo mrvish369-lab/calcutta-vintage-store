@@ -1,34 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Languages } from 'lucide-react';
+import { ArrowLeft, Languages, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import './Reader.css';
-
-const CONTENT = {
-  en: {
-    title: "Tramways of Old Calcutta",
-    chapter: "Chapter I: The Arrival of the Steel Giants",
-    body: "In the late 19th century, Calcutta witnessed a revolution in public transport...",
-    infographicLabel: "Timeline of First Trams"
-  },
-  bn: {
-    title: "পুরানো কলকাতার ট্রামওয়ে",
-    chapter: "প্রথম অধ্যায়: ইস্পাতের দৈত্যের আগমন",
-    body: "ঊনবিংশ শতাব্দীর শেষের দিকে, কলকাতা গণপরিবহনে এক বিপ্লবের সাক্ষী হয়েছিল...",
-    infographicLabel: "প্রথম ট্রামের সময়রেখা"
-  },
-  hi: {
-    title: "पुराने कलकत्ता के ट्रामवे",
-    chapter: "अध्याय I: स्टील दिग्गजों का आगमन",
-    body: "19वीं सदी के अंत में, कलकत्ता ने सार्वजनिक परिवहन में एक क्रांति देखी...",
-    infographicLabel: "पहली ट्राम की समयरेखा"
-  }
-};
 
 export default function Reader() {
   const { id } = useParams();
   const [lang, setLang] = useState('en');
+  const [asset, setAsset] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const content = CONTENT[lang];
+  useEffect(() => {
+    fetchAsset();
+  }, [id]);
+
+  async function fetchAsset() {
+    const { data, error } = await supabase
+      .from('assets')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) console.error('Error fetching asset:', error);
+    else setAsset(data);
+    setLoading(false);
+  }
+
+  if (loading) return <div className="reader-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={64} /></div>;
+
+  if (!asset) return <div className="reader-layout">Asset not found.</div>;
+
+  const content = (asset.content_json && asset.content_json[lang]) || {
+    title: asset.title,
+    chapter: "N/A",
+    body: "Content not available in this language.",
+    infographicLabel: "N/A"
+  };
 
   return (
     <div className="reader-layout">
@@ -52,22 +59,21 @@ export default function Reader() {
           
           <div className="text-body">
             <p className="drop-cap">{content.body.charAt(0)}</p>
-            <p>{content.body.substring(1)} The horse-drawn trams paved the way for the electric networks we see today. The streets buzzed with the sound of the bell, echoing through the colonial architecture of Dalhousie Square.</p>
-            <p>This digital asset brings to light previously unseen sketches of the early routes mapping Esplanade to Sealdah.</p>
+            <p>{content.body.substring(1)}</p>
           </div>
 
           <figure className="infographic zoom-in-animate">
             <div className="interactive-timeline">
               <div className="timeline-item">
-                <span className="year">1873</span>
-                <span className="event">First Horse Tram</span>
+                <span className="year">PDF</span>
+                <span className="event">Verifiable Asset</span>
               </div>
               <div className="timeline-item">
-                <span className="year">1902</span>
-                <span className="event">Electric Tramways</span>
+                <span className="year">LIVE</span>
+                <span className="event">Market Updates</span>
               </div>
             </div>
-            <figcaption>{content.infographicLabel}</figcaption>
+            <figcaption>Interactive Timeline for {asset.title}</figcaption>
           </figure>
           
         </article>

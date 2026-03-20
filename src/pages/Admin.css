@@ -1,106 +1,54 @@
-.admin-layout {
-  min-height: 100vh;
-}
-
-.admin-main {
-  padding-top: 3rem;
-}
-
-.admin-header {
+.admin-grid {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3rem;
-  border-bottom: 2px solid var(--color-ink-light);
-  padding-bottom: 1rem;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.upload-section {
-  margin-bottom: 4rem;
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.upload-section h2, .asset-list h2 {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+.form-group {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
 }
 
-.upload-zone {
-  border: 2px dashed var(--color-howrah-steel);
-  border-radius: 12px;
-  padding: 4rem 2rem;
-  text-align: center;
-  background: rgba(255,255,255,0.4);
-  transition: all 0.3s ease;
-  position: relative;
-  cursor: pointer;
+.admin-input {
+  padding: 0.8rem;
+  border: 1px solid var(--color-sepia-dark);
+  border-radius: 6px;
+  background: var(--color-sepia-light);
+  font-family: var(--font-sans);
 }
 
-.upload-zone.drag-active {
+.upload-zone.has-file {
   border-color: var(--color-tram-red);
-  background: rgba(187, 62, 48, 0.05);
+  background: rgba(187, 62, 48, 0.03);
 }
 
-.upload-icon {
-  margin-bottom: 1rem;
-  color: var(--color-howrah-steel);
-}
-
-.file-input {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.admin-table-container {
-  overflow-x: auto;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.admin-table th {
+.push-btn {
   padding: 1rem;
-  text-align: left;
-  border-bottom: 2px solid var(--glass-border);
-  color: var(--color-howrah-steel);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-msg {
+  text-align: center;
   font-weight: 600;
-}
-
-.admin-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--glass-border);
-  vertical-align: middle;
-}
-
-.admin-table td svg {
-  vertical-align: middle;
-  margin-right: 0.5rem;
-  color: var(--color-howrah-steel);
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status-badge.live {
-  background: rgba(46, 204, 113, 0.2);
-  color: #27ae60;
-}
-
-.status-badge.draft {
-  background: rgba(246, 197, 35, 0.2);
-  color: #d35400;
-}
-
-.btn-small {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
+  color: var(--color-ink-light);
 }
