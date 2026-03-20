@@ -1,7 +1,7 @@
 .reader-layout-modern {
   min-height: 100vh;
   background-color: #0f0f0e;
-  padding-top: 6rem;
+  padding-top: 7rem;
 }
 
 .reader-layout-modern-loading {
@@ -9,73 +9,84 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-sepia-bg);
+  background: #0f0f0e;
 }
 
 .reader-top-bar {
   position: fixed;
-  top: 1rem; left: 1rem; right: 1rem;
-  padding: 0.8rem 2rem;
+  top: 1.5rem; left: 1.5rem; right: 1.5rem;
+  padding: 1rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  border-radius: 50px;
+  border-radius: 60px;
 }
 
 .top-bar-left {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .btn-back {
   color: var(--color-text-light);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 0.6rem;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.btn-back:hover {
+  color: var(--color-accent-amber);
 }
 
 .asset-path {
   font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   opacity: 0.4;
-  font-weight: 700;
+  font-weight: 800;
+  border-left: 1px solid var(--glass-border);
+  padding-left: 1.5rem;
 }
 
 .top-bar-right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .btn-action-gold {
   background: var(--grad-premium);
   color: var(--color-text-dark);
   border: none;
-  padding: 0.6rem 1.2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 50px;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  gap: 0.6rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-action-gold:hover:not(:disabled) {
-  transform: scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(212, 160, 23, 0.3);
 }
 
 .lang-selector-premium {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   color: var(--color-accent-amber);
+  background: rgba(255,255,255,0.05);
+  padding: 0.5rem 1rem;
+  border-radius: 40px;
 }
 
 .lang-selector-premium select {
@@ -83,104 +94,119 @@
   color: var(--color-text-light);
   border: none;
   font-family: var(--font-sans);
-  font-weight: 600;
+  font-weight: 700;
   outline: none;
+  cursor: pointer;
 }
 
-/* Document Styling */
+/* Document Viewport */
 .document-viewport {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 4rem 2rem 8rem;
 }
 
 .premium-doc-page {
   background: var(--color-paper);
   color: #2c2a26;
-  padding: 5rem 4rem;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-  border-radius: 4px;
-  min-height: 100vh;
+  padding: 8rem 6rem;
+  box-shadow: 0 50px 150px rgba(0,0,0,0.6);
+  border-radius: 8px;
   position: relative;
 }
 
 .doc-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 6rem;
+}
+
+.doc-seal-heritage {
+  margin-bottom: 2rem;
+  opacity: 0.8;
 }
 
 .doc-seal {
   font-family: var(--font-sans);
-  font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 4px;
-  margin-bottom: 1rem;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 6px;
+  margin-bottom: 1.5rem;
   display: inline-block;
-  border-bottom: 2px solid #8e1b1b;
+  border-bottom: 3px solid var(--color-imperial-red);
   padding-bottom: 0.5rem;
 }
 
 .doc-title {
-  font-size: 3.5rem;
+  font-size: 4rem;
+  line-height: 1.1;
   color: #1a1917;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-serif);
 }
 
 .doc-meta {
   font-style: italic;
   font-family: var(--font-serif);
-  opacity: 0.7;
+  opacity: 0.6;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  font-size: 1.1rem;
 }
 
 .doc-meta .dot {
-  width: 4px; height: 4px;
-  background: #2c2a26;
+  width: 5px; height: 5px;
+  background: var(--color-imperial-red);
   border-radius: 50%;
 }
 
 .doc-body-grid {
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: 1.25rem;
+  line-height: 1.9;
   color: #333;
 }
 
 .doc-body-grid h1, .doc-body-grid h2 {
-  margin: 2rem 0 1rem;
+  margin: 3rem 0 1.5rem;
   color: #1a1917;
 }
 
 .doc-body-grid p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .doc-footer {
-  margin-top: 6rem;
+  margin-top: 8rem;
   text-align: center;
 }
 
 .footer-line {
-  height: 1px;
+  height: 2px;
   background: rgba(0,0,0,0.1);
-  width: 100px;
-  margin: 0 auto 1.5rem;
+  width: 120px;
+  margin: 0 auto 2rem;
 }
 
 .doc-footer p {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.5;
+  letter-spacing: 2px;
+  font-weight: 700;
+  opacity: 0.4;
 }
 
-/* Overlay */
+.footer-taxi-mini {
+  margin: 3rem auto 0;
+  opacity: 0.2;
+}
+
+/* Generation Overlay */
 .generation-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -188,68 +214,41 @@
 }
 
 .gen-popup {
-  padding: 3rem;
+  padding: 4rem;
   text-align: center;
-  max-width: 400px;
+  max-width: 500px;
 }
 
 .gen-popup h3 {
-  margin: 1.5rem 0 0.5rem;
-  color: var(--color-accent-gold);
+  font-size: 2rem;
+  margin: 2rem 0 1rem;
+  color: var(--color-accent-amber);
 }
 
 .gen-popup p {
-  font-size: 0.9rem;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
+/* PDF Only Fallback */
 .pdf-fallback-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
   min-height: 80vh;
 }
 
 .fallback-card {
-  padding: 4rem;
+  padding: 5rem;
   text-align: center;
-  max-width: 500px;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
-  items-center: center;
-  gap: 1.5rem;
-}
-
-.fallback-card h2 {
-  font-size: 2rem;
-  color: var(--color-accent-gold);
-}
-
-.fallback-card p {
-  opacity: 0.7;
-}
-
-.fallback-card .btn-premium {
-  margin-top: 1rem;
-}
-
-/* Heritage Additions */
-.doc-seal-heritage {
-  margin-bottom: 1rem;
-  opacity: 0.7;
-}
-
-.footer-taxi-mini {
-  margin-top: 2rem;
-  opacity: 0.2;
-  margin: 2rem auto 0;
-  display: block;
+  align-items: center;
+  gap: 2rem;
 }
 
 .seal-animated {
   animation: sealSpin 30s linear infinite;
-  margin-bottom: 2rem;
 }
 
 @keyframes sealSpin {
