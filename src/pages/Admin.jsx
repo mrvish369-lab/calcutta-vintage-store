@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header';
-import { Upload, Plus, FileText, CheckCircle, Loader2 } from 'lucide-react';
+import { Upload, Plus, FileText, CheckCircle, Loader2, Code, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Admin.css';
 
 export default function Admin() {
-  const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [assets, setAssets] = useState([]);
   const [formData, setFormData] = useState({ title: '', author: '', year: '' });
-  const [file, setFile] = useState(null);
+  const [htmlContent, setHtmlContent] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -26,23 +25,16 @@ export default function Admin() {
     else setAssets(data || []);
   }
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
-    else if (e.type === "dragleave" || e.type === "drop") setDragActive(false);
+  const handleDelete = async (id) => {
+    const { error } = await supabase.from('assets').delete().eq('id', id);
+    if (error) setMessage(`Error deleting: ${error.message}`);
+    else fetchAssets();
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleUpload = async (e) => {
+  const handlePush = async (e) => {
     e.preventDefault();
-    if (!file || !formData.title) {
-      setMessage('Please provide a title and select a PDF file.');
+    if (!htmlContent || !formData.title) {
+      setMessage('Please provide a title and HTML content.');
       return;
     }
 
@@ -50,23 +42,7 @@ export default function Admin() {
     setMessage('');
 
     try {
-      // 1. Upload PDF to Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `pdfs/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('pdf-assets')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // 2. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('pdf-assets')
-        .getPublicUrl(filePath);
-
-      // 3. Save Metadata to DB
+      // Save Metadata and HTML directly to DB
       const { error: dbError } = await supabase
         .from('assets')
         .insert([
@@ -74,23 +50,26 @@ export default function Admin() {
             title: formData.title, 
             author: formData.author, 
             year: formData.year, 
-            pdf_url: publicUrl,
             content_json: {
-              en: { title: formData.title, chapter: "Interactive Reader Content", body: `This is the digital version of ${formData.title}. The full interactive content can be configured here.` },
-              bn: { title: formData.title, chapter: "ইন্টারেক্টিভ রিডার", body: "বাংলা ভাষায় পাঠ্য শীঘ্রই আসছে।" },
-              hi: { title: formData.title, chapter: "इंटरएक्टिव रीडर", body: "हिंदी भाषा में पाठ जल्द ही आ रहा है।" }
+              en: { 
+                title: formData.title, 
+                chapter: "Interactive Report", 
+                body: htmlContent // The actual HTML string
+              },
+              bn: { title: formData.title, chapter: "রিপোর্ট", body: "বাংলা শীঘ্রই আসছে।" },
+              hi: { title: formData.title, chapter: "रिपोर्ट", body: "हिंदी जल्द ही आ रही है।" }
             } 
           }
         ]);
 
       if (dbError) throw dbError;
 
-      setMessage('Asset uploaded successfully!');
-      setFile(null);
+      setMessage('Digital asset pushed successfully!');
+      setHtmlContent('');
       setFormData({ title: '', author: '', year: '' });
       fetchAssets();
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Push failed:', error);
       setMessage(`Error: ${error.message}`);
     } finally {
       setUploading(false);
@@ -98,90 +77,82 @@ export default function Admin() {
   };
 
   return (
-    <div className="admin-layout">
+    <div className="admin-layout dark-theme">
       <Header />
       
-      <main className="admin-main container animate-fade-in-up">
+      <main className="admin-main container animate-reveal">
         <header className="admin-header">
-          <h1>Admin Dashboard</h1>
+          <h1 className="hero-display-title" style={{fontSize: '3rem'}}>Admin <span>Portal</span></h1>
         </header>
 
-        <section className="upload-section">
-          <h2>Push New Asset</h2>
-          <div className="admin-grid">
-            <form onSubmit={handleUpload} className="upload-form">
-              <div className="form-group">
+        <div className="admin-row">
+          <section className="admin-left glass-panel">
+            <h2><Plus size={20} /> Push New HTML Asset</h2>
+            <form onSubmit={handlePush} className="upload-form">
+              <div className="form-group-full">
                 <input 
                   type="text" 
-                  placeholder="Asset Title (e.g. Real Estate Report)" 
+                  placeholder="Asset Title (e.g. Kolkata Market Update Oct 2025)" 
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="admin-input"
+                  className="admin-input-premium"
                   required
                 />
+              </div>
+              <div className="form-group-duo">
                 <input 
                   type="text" 
                   placeholder="Author/Source" 
                   value={formData.author}
                   onChange={(e) => setFormData({...formData, author: e.target.value})}
-                  className="admin-input"
+                  className="admin-input-premium"
                 />
                 <input 
                   type="text" 
                   placeholder="Year" 
                   value={formData.year}
                   onChange={(e) => setFormData({...formData, year: e.target.value})}
-                  className="admin-input"
+                  className="admin-input-premium"
                 />
               </div>
 
-              <div 
-                className={`upload-zone ${dragActive ? 'drag-active' : ''} ${file ? 'has-file' : ''}`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={(e) => {
-                  handleDrag(e);
-                  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
-                }}
-              >
-                {file ? <CheckCircle size={48} color="var(--color-tram-red)" /> : <Upload size={48} className="upload-icon" />}
-                <p>{file ? file.name : "Drag and drop PDF, or click to browse"}</p>
-                <input type="file" className="file-input" accept=".pdf" onChange={handleFileChange} disabled={uploading} />
+              <div className="editor-container">
+                <label><Code size={16} /> HTML Content (Paste from your editor)</label>
+                <textarea 
+                  className="html-editor"
+                  placeholder="<div><h1>Report</h1><p>Market is booming...</p></div>"
+                  value={htmlContent}
+                  onChange={(e) => setHtmlContent(e.target.value)}
+                  rows="12"
+                  required
+                ></textarea>
               </div>
 
-              <button type="submit" className="btn-primary push-btn" disabled={uploading}>
-                {uploading ? <Loader2 className="animate-spin" /> : <Plus size={18} />}
-                {uploading ? 'Uploading...' : 'Push Update to Users'}
+              <button type="submit" className="btn-premium push-btn" disabled={uploading}>
+                {uploading ? <Loader2 className="animate-spin" /> : "Broadcast to Audience"}
               </button>
               {message && <p className="status-msg">{message}</p>}
             </form>
-          </div>
-        </section>
+          </section>
 
-        <section className="asset-list glass-panel" style={{ padding: '2rem' }}>
-          <h2>Live Archives</h2>
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Asset Name</th>
-                  <th>Date Added</th>
-                  <th>Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assets.map(asset => (
-                  <tr key={asset.id}>
-                    <td><FileText size={16} /> {asset.title}</td>
-                    <td>{new Date(asset.created_at).toLocaleDateString()}</td>
-                    <td><span className="status-badge live">PDF + HTML</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <section className="admin-right glass-panel">
+            <h2><FileText size={20} /> Active Distribution</h2>
+            <div className="asset-scroll-list">
+              {assets.map(asset => (
+                <div key={asset.id} className="admin-asset-item glass-panel">
+                  <div className="asset-info">
+                    <h4>{asset.title}</h4>
+                    <p>{new Date(asset.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <button className="btn-delete" onClick={() => handleDelete(asset.id)}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              {assets.length === 0 && <p className="empty-hint">No active distributions.</p>}
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );

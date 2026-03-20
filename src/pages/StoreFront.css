@@ -1,114 +1,251 @@
-.store-layout {
+.store-bg {
   min-height: 100vh;
+  padding-bottom: 6rem;
 }
 
-.hero-section {
-  padding: 6rem 2rem;
-  text-align: center;
-  background: radial-gradient(circle at center, rgba(246, 197, 35, 0.08) 0%, transparent 60%);
-}
-
-.hero-title {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  color: var(--color-ink);
-  letter-spacing: -1px;
-}
-
-.hero-subtitle {
-  font-size: 1.25rem;
-  color: var(--color-ink-light);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem 4rem;
-}
-
-.pdf-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2.5rem;
-}
-
-.pdf-card {
+.hero-modern {
+  padding: 6rem 0 4rem;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.pdf-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 40px rgba(44, 42, 37, 0.1);
-}
-
-.pdf-cover-placeholder {
-  height: 240px;
-  background: var(--color-ink-light);
-  display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 2rem;
+}
+
+.hero-glass {
+  padding: 4rem;
+  max-width: 900px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.pdf-cover-placeholder::after {
+.hero-glass::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(0,0,0,0.05) 10px,
-    rgba(0,0,0,0.05) 20px
-  );
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.05) 0%, transparent 50%);
+  animation: slowRotate 20s linear infinite;
+  z-index: -1;
 }
 
-.cover-title-overlay {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  color: var(--color-sepia-light);
+.badge-vintage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212, 160, 23, 0.1);
+  color: var(--color-accent-amber);
+  padding: 0.5rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
   font-weight: 700;
-  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 1px solid rgba(212, 160, 23, 0.2);
+  margin-bottom: 2rem;
 }
 
-.pdf-info {
-  padding: 1.5rem;
+.hero-display-title {
+  font-size: 5.5rem;
+  line-height: 0.9;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-light);
+}
+
+.hero-display-title span {
+  color: var(--color-accent-amber);
+  background: var(--grad-premium);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  opacity: 0.8;
+  font-weight: 300;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 2rem;
+}
+
+.stat-item {
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 }
 
-.pdf-title {
-  font-size: 1.25rem;
+.stat-num {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent-amber);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.6;
+}
+
+.stat-item.divider {
+  width: 1px;
+  height: 40px;
+  background: var(--glass-border);
+}
+
+/* Grid & Cards */
+.collection-grid {
+  margin-top: 4rem;
+}
+
+.section-header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 
-.pdf-meta {
-  color: var(--color-howrah-steel);
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-  flex-grow: 1;
+.title-underline {
+  width: 60px;
+  height: 4px;
+  background: var(--grad-premium);
+  margin: 0 auto;
+  border-radius: 2px;
 }
 
-.pdf-actions {
+.modern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+}
+
+.asset-card {
+  padding: 1.5rem;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+  opacity: 0;
+  animation: reveal 0.8s forwards;
+}
+
+.asset-card:hover {
+  transform: translateY(-12px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-accent-amber);
+}
+
+.card-media {
+  height: 200px;
+  background: var(--grad-dark);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.card-icon {
+  color: var(--color-accent-amber);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.asset-card:hover .card-icon {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.card-badge {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: var(--color-imperial-red);
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.asset-name {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-light);
+}
+
+.asset-meta {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  margin-bottom: 1.5rem;
+}
+
+.card-actions {
   display: flex;
   gap: 1rem;
 }
 
-.action-btn {
+.btn-glass-small {
   flex: 1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-light);
+  padding: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.6rem;
-  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-glass-small:hover {
+  background: var(--color-accent-amber);
+  color: var(--color-text-dark);
+}
+
+.btn-premium-small {
+  flex: 1;
+  background: var(--grad-premium);
+  color: var(--color-text-dark);
+  border: none;
+  padding: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-premium-small:hover {
+  transform: scale(1.05);
+}
+
+.empty-state {
+  padding: 6rem;
+  text-align: center;
+  opacity: 0.6;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
 }
