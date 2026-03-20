@@ -1,0 +1,53 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.logo-icon {
+  color: var(--color-tram-red);
+}
+
+.main-nav {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--color-ink-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link:hover {
+  color: var(--color-tram-red);
+}

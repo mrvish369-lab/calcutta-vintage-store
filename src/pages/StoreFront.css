@@ -1,0 +1,114 @@
+.store-layout {
+  min-height: 100vh;
+}
+
+.hero-section {
+  padding: 6rem 2rem;
+  text-align: center;
+  background: radial-gradient(circle at center, rgba(246, 197, 35, 0.08) 0%, transparent 60%);
+}
+
+.hero-title {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: var(--color-ink);
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--color-ink-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.pdf-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pdf-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(44, 42, 37, 0.1);
+}
+
+.pdf-cover-placeholder {
+  height: 240px;
+  background: var(--color-ink-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pdf-cover-placeholder::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(0,0,0,0.05) 10px,
+    rgba(0,0,0,0.05) 20px
+  );
+}
+
+.cover-title-overlay {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--color-sepia-light);
+  font-weight: 700;
+  z-index: 1;
+}
+
+.pdf-info {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.pdf-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.pdf-meta {
+  color: var(--color-howrah-steel);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.pdf-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  font-size: 0.9rem;
+}
