@@ -21,6 +21,7 @@ export default function Reader() {
   useEffect(() => {
     fetchAsset();
     fetchSuggestions();
+    window.scrollTo(0, 0);
   }, [id]);
 
   useEffect(() => {
@@ -42,15 +43,20 @@ export default function Reader() {
   }
 
   async function fetchSuggestions() {
+    // Fetch a bit more to filter out the current ID in memory
     const { data, error } = await supabase
       .from('assets')
       .select('*')
-      .neq('id', id)
-      .limit(3)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10);
     
-    if (error) console.error('Error fetching suggestions:', error);
-    else setSuggestions(data || []);
+    if (error) {
+      console.error('Error fetching suggestions:', error);
+    } else {
+      // Filter out current asset and take top 3
+      const filtered = (data || []).filter(item => item.id !== id).slice(0, 3);
+      setSuggestions(filtered);
+    }
   }
 
   const handleShare = () => {
@@ -160,43 +166,45 @@ export default function Reader() {
         </div>
       )}
       
-      <main className="document-viewport Discover-Discover">
-        {isOnlyPdf ? (
-          <div className="pdf-fallback-container animate-reveal">
-            <div className="fallback-card glass-panel">
-              <ArchiveSeal className="seal-animated" size={80} />
-              <FileText size={64} color="var(--color-accent-amber)" />
-              <h2>Document Available as PDF</h2>
-              <p>This asset is currently only available in PDF format for direct download.</p>
-              <button className="btn-premium" onClick={() => window.open(asset.pdf_url, '_blank')}>
-                Open PDF Document
-              </button>
-            </div>
-          </div>
-        ) : (
-          <article className="premium-doc-page animate-reveal" ref={readerRef}>
-            <header className="doc-header">
-              <ArchiveSeal className="doc-seal-heritage" size={120} />
-              <div className="doc-seal">IMPERIAL ARCHIVES</div>
-              <h1 className="doc-title">{content.title}</h1>
-              <div className="doc-meta">
-                <span>{asset.author || 'Imperial Correspondent'}</span>
-                <span className="dot"></span>
-                <span>Kolkata, {asset.year || '2025'}</span>
+      <main className="document-viewport reader-discovery-layout">
+        <div className="reader-main-content">
+          {isOnlyPdf ? (
+            <div className="pdf-fallback-container animate-reveal">
+              <div className="fallback-card glass-panel">
+                <ArchiveSeal className="seal-animated" size={80} />
+                <FileText size={64} color="var(--color-accent-amber)" />
+                <h2>Document Available as PDF</h2>
+                <p>This asset is currently only available in PDF format for direct download.</p>
+                <button className="btn-premium" onClick={() => window.open(asset.pdf_url, '_blank')}>
+                  Open PDF Document
+                </button>
               </div>
-            </header>
-
-            <div className="doc-body-grid">
-              <div className="doc-column-main" dangerouslySetInnerHTML={{ __html: content.body }}></div>
             </div>
-            
-            <footer className="doc-footer">
-              <div className="footer-line"></div>
-              <p>© 2025 Imperial Calcutta Archives</p>
-              <YellowTaxi className="footer-taxi-mini" size={40} />
-            </footer>
-          </article>
-        )}
+          ) : (
+            <article className="premium-doc-page animate-reveal" ref={readerRef}>
+              <header className="doc-header">
+                <ArchiveSeal className="doc-seal-heritage" size={120} />
+                <div className="doc-seal">IMPERIAL ARCHIVES</div>
+                <h1 className="doc-title">{content.title}</h1>
+                <div className="doc-meta">
+                  <span>{asset.author || 'Imperial Correspondent'}</span>
+                  <span className="dot"></span>
+                  <span>Kolkata, {asset.year || '2025'}</span>
+                </div>
+              </header>
+
+              <div className="doc-body-grid">
+                <div className="doc-column-main" dangerouslySetInnerHTML={{ __html: content.body }}></div>
+              </div>
+              
+              <footer className="doc-footer">
+                <div className="footer-line"></div>
+                <p>© 2025 Imperial Calcutta Archives</p>
+                <YellowTaxi className="footer-taxi-mini" size={40} />
+              </footer>
+            </article>
+          )}
+        </div>
 
         {/* RELEVANT SUGGESTIONS AT THE BOTTOM */}
         {suggestions.length > 0 && (
@@ -209,14 +217,14 @@ export default function Reader() {
             
             <div className="discover-grid">
               {suggestions.map((item) => (
-                <div key={item.id} className="discover-card glass-panel" onClick={() => {navigate(`/reader/${item.id}`); window.scrollTo(0,0);}}>
+                <div key={item.id} className="discover-card glass-panel" onClick={() => navigate(`/reader/${item.id}`)}>
                   <div className="d-cover">
-                    {item.cover_url ? <img src={item.cover_url} alt="" /> : <FileText size={24} />}
+                    {item.cover_url ? <img src={item.cover_url} alt="" /> : <BookOpen size={24} color="var(--color-accent-amber)" opacity="0.3" />}
                   </div>
                   <div className="d-info">
                     <h4>{item.title}</h4>
                     <p>{item.author} • {item.year}</p>
-                    <button className="btn-d-view"><Eye size={12}/> View</button>
+                    <button className="btn-d-view"><Eye size={12}/> Dive In</button>
                   </div>
                 </div>
               ))}
