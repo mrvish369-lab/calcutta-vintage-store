@@ -11,7 +11,7 @@ import './Admin.css';
 export default function Admin() {
   const [uploading, setUploading] = useState(false);
   const [assets, setAssets] = useState([]);
-  const [formData, setFormData] = useState({ title: '', author: '', year: '' });
+  const [formData, setFormData] = useState({ title: '', author: '', year: '', isGG: false });
   const [htmlContent, setHtmlContent] = useState('');
   const [pdfFile, setPdfFile] = useState(null);
   const [htmlFile, setHtmlFile] = useState(null);
@@ -125,6 +125,7 @@ export default function Admin() {
         pdf_url: finalPdfUrl,
         cover_url: finalCoverUrl,
         content_json: finalHtmlContent ? {
+          brand: formData.isGG ? 'GG' : null,
           en: { title: formData.title, chapter: "Interactive Content", body: finalHtmlContent }
         } : (editingId ? assets.find(a => a.id === editingId)?.content_json : null)
       };
@@ -202,20 +203,15 @@ export default function Admin() {
                         required
                       />
                       <div className="input-row">
-                        <input 
-                          type="text" 
-                          placeholder="Author / Organization" 
-                          value={formData.author}
-                          onChange={(e) => setFormData({...formData, author: e.target.value})}
-                          className="admin-input-gold"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Release Year" 
-                          value={formData.year}
-                          onChange={(e) => setFormData({...formData, year: e.target.value})}
-                          className="admin-input-gold"
-                        />
+                        <div className="toggle-gg-modern glass-panel">
+                          <input 
+                            type="checkbox" 
+                            id="gg_brand"
+                            checked={formData.isGG}
+                            onChange={(e) => setFormData({...formData, isGG: e.target.checked})}
+                          />
+                          <label htmlFor="gg_brand">Apply Growth Gurukul Branding 🎓💚</label>
+                        </div>
                       </div>
                     </div>
                   </div>

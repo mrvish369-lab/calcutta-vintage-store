@@ -132,9 +132,10 @@ export default function Reader() {
   };
 
   const isOnlyPdf = !asset.content_json;
+  const isGG = asset.content_json?.brand === 'GG';
 
   return (
-    <div className="reader-layout-ios">
+    <div className={`reader-layout-ios ${isGG ? 'gg-mode' : ''}`}>
       <header className="reader-header-ios glass-panel animate-reveal">
         <div className="header-top-row">
           <Link to="/" className="btn-ios-close"><ArrowLeft size={20} /> Library</Link>
@@ -159,26 +160,28 @@ export default function Reader() {
       
       <main className="document-viewport-ios">
         {/* Growth Gurukul Branding Banner - Slim & Aesthetic */}
-        <div className="gg-branding-banner animate-reveal">
-          <div className="gg-left">
-            <div className="gg-logo-pill">
-              <GraduationCap size={16} />
-              <span>GROWTH GURUKUL</span>
+        {isGG && (
+          <div className="gg-branding-banner animate-reveal">
+            <div className="gg-left">
+              <div className="gg-logo-pill">
+                <GraduationCap size={16} />
+                <span>GROWTH GURUKUL</span>
+              </div>
+              <div className="gg-course-info">
+                <span className="gg-course-title">Real Estate Business Masterclass</span>
+                <span className="gg-price">Get Certified</span>
+              </div>
             </div>
-            <div className="gg-course-info">
-              <span className="gg-course-title">Real Estate Business Masterclass</span>
-              <span className="gg-price">Get Certified</span>
-            </div>
+            <a 
+              href="https://growthgurukul.store/course/real-estate-business-masterclass" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-gg-enroll"
+            >
+              Enroll Now <Sparkles size={14} />
+            </a>
           </div>
-          <a 
-            href="https://growthgurukul.store/course/real-estate-business-masterclass" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="btn-gg-enroll"
-          >
-            Enroll Now <Sparkles size={14} />
-          </a>
-        </div>
+        )}
 
         <div className="reader-frame-ios glass-panel animate-reveal">
           {/* Tram Track Motifs */}
