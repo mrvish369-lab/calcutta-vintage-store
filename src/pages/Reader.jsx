@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Languages, Loader2, Download, FileText, Share2, BookOpen, Eye } from 'lucide-react';
+import { ArrowLeft, Languages, Loader2, Download, FileText, Share2, BookOpen, Eye, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ArchiveSeal, YellowTaxi } from '../components/HeritageIcons';
 import html2pdf from 'html2pdf.js';
@@ -16,11 +16,23 @@ export default function Reader() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
+  const [error, setError] = useState(null);
   const readerRef = useRef();
 
   useEffect(() => {
-    fetchAsset();
-    fetchSuggestions();
+    async function loadData() {
+      setLoading(true);
+      setError(null);
+      try {
+        await Promise.all([fetchAsset(), fetchSuggestions()]);
+      } catch (err) {
+        console.error("Reader data load error:", err);
+        setError("Failed to load archive data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -31,37 +43,39 @@ export default function Reader() {
   }, [loading, asset]);
 
   async function fetchAsset() {
-    const { data, error } = await supabase
+    const { data, fetchError } = await supabase
       .from('assets')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) console.error('Error fetching asset:', error);
-    else setAsset(data);
-    setLoading(false);
+    if (fetchError) throw fetchError;
+    if (!data) throw new Error("Asset not found");
+    setAsset(data);
   }
 
   async function fetchSuggestions() {
-    const { data, error } = await supabase
+    const { data, fetchError } = await supabase
       .from('assets')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
     
-    if (error) {
-      console.error('Error fetching suggestions:', error);
-    } else {
-      const filtered = (data || []).filter(item => item.id !== id).slice(0, 3);
+    if (!fetchError && data) {
+      const filtered = data.filter(item => item.id !== id).slice(0, 3);
       setSuggestions(filtered);
     }
   }
 
   const handleShare = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    setShareMsg('Link Copied! 🏛️');
-    setTimeout(() => setShareMsg(''), 3000);
+    try {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url);
+      setShareMsg('Link Copied! 🏛️');
+      setTimeout(() => setShareMsg(''), 3000);
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
   };
 
   const handleDownload = async () => {
@@ -72,7 +86,7 @@ export default function Reader() {
     }
 
     setGenerating(true);
-    const fileName = `${asset.title.replace(/\s+/g, '_')}.pdf`;
+    const fileName = `${(asset.title || 'asset').replace(/\s+/g, '_')}.pdf`;
 
     try {
       const { data: existingPdf } = await supabase.storage
@@ -86,6 +100,8 @@ export default function Reader() {
         window.open(publicUrl, '_blank');
       } else {
         const element = readerRef.current;
+        if (!element) throw new Error("Document element not found for PDF generation");
+        
         const opt = {
           margin: 1,
           filename: fileName,
@@ -106,22 +122,34 @@ export default function Reader() {
       }
     } catch (err) {
       console.error('PDF Generation failed:', err);
+      alert("PDF Generation failed. Please try viewing the original PDF if available.");
     } finally {
       setGenerating(false);
     }
   };
 
-  if (loading) return <div className="reader-layout-modern-loading"><Loader2 className="animate-spin" size={64} /></div>;
+  if (loading) return (
+    <div className="reader-layout-modern-loading">
+      <Loader2 className="animate-spin" size={64} color="var(--color-accent-gold)" />
+    </div>
+  );
 
-  if (!asset) return <div className="reader-layout-modern">Asset not found.</div>;
+  if (error || !asset) return (
+    <div className="reader-layout-modern-error">
+      <AlertCircle size={48} color="var(--color-imperial-red)" />
+      <h2>Archive Unavailable</h2>
+      <p>{error || "The manuscript you are looking for does not exist in our archives."}</p>
+      <Link to="/" className="btn-back mt-4">Return to Storefront</Link>
+    </div>
+  );
 
   const content = (asset.content_json && asset.content_json[lang]) || {
-    title: asset.title,
+    title: asset.title || "Untitled Archive",
     chapter: "Archive",
-    body: "Content not available."
+    body: "Interactive transcript not available for this manuscript."
   };
 
-  const isOnlyPdf = !asset.content_json && asset.pdf_url;
+  const isOnlyPdf = !asset.content_json;
 
   return (
     <div className="reader-layout-modern">
@@ -136,10 +164,12 @@ export default function Reader() {
             {shareMsg ? shareMsg : <><Share2 size={16} /> Share Archive</>}
           </button>
           
-          <button className="btn-action-gold" onClick={handleDownload} disabled={generating}>
-            {generating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-            {asset.pdf_url ? 'Original PDF' : 'Generate PDF'}
-          </button>
+          {(asset.pdf_url || asset.content_json) && (
+            <button className="btn-action-gold" onClick={handleDownload} disabled={generating}>
+              {generating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+              {asset.pdf_url ? 'Original PDF' : 'Generate PDF'}
+            </button>
+          )}
           
           {!isOnlyPdf && (
             <div className="lang-selector-premium">
@@ -172,10 +202,14 @@ export default function Reader() {
                 <ArchiveSeal className="seal-animated" size={80} />
                 <FileText size={64} color="var(--color-accent-amber)" />
                 <h2>Document Available as PDF</h2>
-                <p>This asset is currently only available in PDF format for direct download.</p>
-                <button className="btn-premium" onClick={() => window.open(asset.pdf_url, '_blank')}>
-                  Open PDF Document
-                </button>
+                <p>This historical manuscript is currently preserved as a direct PDF document.</p>
+                {asset.pdf_url ? (
+                  <button className="btn-premium-gold" onClick={() => window.open(asset.pdf_url, '_blank')}>
+                    Open Original Manuscript
+                  </button>
+                ) : (
+                  <p className="mt-4 italic opacity-50">Document link missing. Contact administrator.</p>
+                )}
               </div>
             </div>
           ) : (
@@ -204,7 +238,6 @@ export default function Reader() {
           )}
         </div>
 
-        {/* ALWAYS SHOW EXPLORE SECTION IF MINIMUM 1 OTHER ASSET EXISTS */}
         <section className={`discover-archives-section animate-reveal ${suggestions.length > 0 ? 'visible' : 'hidden'}`}>
           <div className="section-header-mini">
             <div className="dec-line"></div>
@@ -227,8 +260,8 @@ export default function Reader() {
             ))}
             {suggestions.length === 0 && (
               <div className="discover-empty glass-panel">
-                <Sparkles size={16} />
-                <p>Add more manuscripts to the archives to enable related discovery.</p>
+                <Sparkles size={16} color="var(--color-accent-gold)" />
+                <p>Enhance the collection by adding more archives to the library.</p>
               </div>
             )}
           </div>
