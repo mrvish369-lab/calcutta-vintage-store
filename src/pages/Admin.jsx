@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import { Upload, Plus, FileText, CheckCircle, Loader2, Code, Trash2, FileIcon, Image as ImageIcon, LayoutDashboard, Send } from 'lucide-react';
+import { 
+  Upload, Plus, FileText, CheckCircle, Loader2, Code, Trash2, 
+  FileIcon, Image as ImageIcon, LayoutDashboard, Send, Edit3, X 
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Admin.css';
 
@@ -15,6 +18,7 @@ export default function Admin() {
   const [coverPreview, setCoverPreview] = useState(null);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('new'); // 'new' or 'manage'
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchAssets();
@@ -35,6 +39,26 @@ export default function Admin() {
     const { error } = await supabase.from('assets').delete().eq('id', id);
     if (error) setMessage(`Error deleting: ${error.message}`);
     else fetchAssets();
+  };
+
+  const handleEdit = (asset) => {
+    setEditingId(asset.id);
+    setFormData({ title: asset.title, author: asset.author || '', year: asset.year || '' });
+    setHtmlContent(asset.content_json?.en?.body || '');
+    setCoverPreview(asset.cover_url);
+    setActiveTab('new');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({ title: '', author: '', year: '' });
+    setHtmlContent('');
+    setPdfFile(null);
+    setHtmlFile(null);
+    setCoverFile(null);
+    setCoverPreview(null);
+    setMessage('');
   };
 
   const readHtmlFile = (file) => {
@@ -65,11 +89,11 @@ export default function Admin() {
     setMessage('');
 
     try {
-      let finalPdfUrl = null;
-      let finalCoverUrl = null;
+      let finalPdfUrl = editingId ? assets.find(a => a.id === editingId)?.pdf_url : null;
+      let finalCoverUrl = editingId ? assets.find(a => a.id === editingId)?.cover_url : null;
       let finalHtmlContent = htmlContent;
 
-      // 1. Upload Cover Image (if any)
+      // 1. Upload Cover Image (if new)
       if (coverFile) {
         const fileExt = coverFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -96,35 +120,38 @@ export default function Admin() {
         finalPdfUrl = publicUrl;
       }
 
-      // 4. Save to DB
-      const { error: dbError } = await supabase
-        .from('assets')
-        .insert([
-          { 
-            title: formData.title, 
-            author: formData.author, 
-            year: formData.year, 
-            pdf_url: finalPdfUrl,
-            cover_url: finalCoverUrl,
-            content_json: finalHtmlContent ? {
-              en: { title: formData.title, chapter: "Interactive Content", body: finalHtmlContent }
-            } : null
-          }
-        ]);
+      // 4. Update or Insert
+      const assetPayload = { 
+        title: formData.title, 
+        author: formData.author, 
+        year: formData.year, 
+        pdf_url: finalPdfUrl,
+        cover_url: finalCoverUrl,
+        content_json: finalHtmlContent ? {
+          en: { title: formData.title, chapter: "Interactive Content", body: finalHtmlContent }
+        } : (editingId ? assets.find(a => a.id === editingId)?.content_json : null)
+      };
 
-      if (dbError) throw dbError;
+      if (editingId) {
+        const { error: dbError } = await supabase
+          .from('assets')
+          .update(assetPayload)
+          .eq('id', editingId);
+        if (dbError) throw dbError;
+        setMessage('Asset updated successfully! 🔄');
+      } else {
+        const { error: dbError } = await supabase
+          .from('assets')
+          .insert([assetPayload]);
+        if (dbError) throw dbError;
+        setMessage('Asset published successfully! ✨');
+      }
 
-      setMessage('Asset published successfully! ✨');
-      setHtmlContent('');
-      setPdfFile(null);
-      setHtmlFile(null);
-      setCoverFile(null);
-      setCoverPreview(null);
-      setFormData({ title: '', author: '', year: '' });
+      resetForm();
       fetchAssets();
       setActiveTab('manage');
     } catch (error) {
-      console.error('Push failed:', error);
+      console.error('Operation failed:', error);
       setMessage(`Error: ${error.message}`);
     } finally {
       setUploading(false);
@@ -143,7 +170,7 @@ export default function Admin() {
           </div>
           <div className="admin-nav-tabs glass-panel">
             <button className={activeTab === 'new' ? 'active' : ''} onClick={() => setActiveTab('new')}>
-              <Plus size={18} /> New Broadcast
+              <Plus size={18} /> {editingId ? 'Edit Asset' : 'New Broadcast'}
             </button>
             <button className={activeTab === 'manage' ? 'active' : ''} onClick={() => setActiveTab('manage')}>
               <LayoutDashboard size={18} /> Manage Assets
@@ -154,6 +181,12 @@ export default function Admin() {
         {activeTab === 'new' ? (
           <section className="broadcast-zone animate-reveal">
             <form onSubmit={handlePush} className="admin-form-modern">
+              {editingId && (
+                <div className="edit-banner glass-panel">
+                  <span>Currently editing: <strong>{assets.find(a => a.id === editingId)?.title}</strong></span>
+                  <button type="button" onClick={resetForm} className="btn-cancel-edit"><X size={14} /> Cancel Edit</button>
+                </div>
+              )}
               <div className="form-split">
                 <div className="form-left">
                   <div className="form-section glass-panel">
@@ -161,7 +194,7 @@ export default function Admin() {
                     <div className="input-group">
                       <input 
                         type="text" 
-                        placeholder="Asset Title (e.g. Market Intelligence Report Q4)" 
+                        placeholder="Asset Title" 
                         value={formData.title}
                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                         className="admin-input-gold"
@@ -192,7 +225,7 @@ export default function Admin() {
                       <div className={`file-card ${pdfFile ? 'selected' : ''}`}>
                         <FileText size={24} />
                         <div className="file-info">
-                          <span>{pdfFile ? pdfFile.name : "Direct PDF File"}</span>
+                          <span>{pdfFile ? pdfFile.name : (editingId && assets.find(a => a.id === editingId)?.pdf_url ? "Replace PDF" : "Direct PDF File")}</span>
                           <p>Standard document download</p>
                         </div>
                         <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} />
@@ -200,14 +233,14 @@ export default function Admin() {
                       <div className={`file-card ${htmlFile ? 'selected' : ''}`}>
                         <Code size={24} />
                         <div className="file-info">
-                          <span>{htmlFile ? htmlFile.name : "Interactive HTML"}</span>
+                          <span>{htmlFile ? htmlFile.name : (editingId && assets.find(a => a.id === editingId)?.content_json ? "Replace HTML" : "Interactive HTML")}</span>
                           <p>Live read online view</p>
                         </div>
                         <input type="file" accept=".html" onChange={(e) => setHtmlFile(e.target.files[0])} />
                       </div>
                     </div>
                     <div className="manual-html">
-                      <label>Or Paste HTML Manually</label>
+                      <label>Edit or Paste HTML Content</label>
                       <textarea 
                         className="html-textarea-gold"
                         placeholder="<div>Raw HTML content here...</div>"
@@ -226,21 +259,20 @@ export default function Admin() {
                       {coverPreview ? (
                         <div className="cover-preview-box">
                           <img src={coverPreview} alt="Preview" />
-                          <button type="button" className="btn-remove-p" onClick={() => {setCoverPreview(null); setCoverFile(null);}}>Change</button>
+                          <button type="button" className="btn-remove-p" onClick={() => {setCoverPreview(null); setCoverFile(null);}}>Change Image</button>
                         </div>
                       ) : (
                         <div className="cover-placeholder">
                           <ImageIcon size={48} />
-                          <p>Upload Cover Photo</p>
-                          <span className="hint">Recommended: 400 x 600px</span>
+                          <p>Set Cover Photo</p>
                           <input type="file" accept="image/*" onChange={handleCoverChange} />
                         </div>
                       )}
                     </div>
                     
                     <button type="submit" className="btn-broadcast-p" disabled={uploading}>
-                      {uploading ? <Loader2 className="animate-spin" /> : <Send size={20} />}
-                      {uploading ? 'Publishing...' : 'Broadcast Asset'}
+                      {uploading ? <Loader2 className="animate-spin" /> : (editingId ? <Edit3 size={20} /> : <Send size={20} />)}
+                      {uploading ? 'Updating...' : (editingId ? 'Save Changes' : 'Publish Asset')}
                     </button>
                     {message && <p className="status-msg-p">{message}</p>}
                   </div>
@@ -264,9 +296,14 @@ export default function Admin() {
                       {asset.content_json && <span className="m-badge html">HTML</span>}
                     </div>
                   </div>
-                  <button className="btn-delete-p" onClick={() => handleDelete(asset.id)}>
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="manage-actions-p">
+                    <button className="btn-edit-p" onClick={() => handleEdit(asset)}>
+                      <Edit3 size={18} />
+                    </button>
+                    <button className="btn-delete-p" onClick={() => handleDelete(asset.id)}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
               {assets.length === 0 && <div className="empty-manage glass-panel">No assets distributed yet.</div>}

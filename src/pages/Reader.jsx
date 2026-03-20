@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Languages, Loader2, Download, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { ArchiveSeal, YellowTaxi } from '../components/HeritageIcons';
 import html2pdf from 'html2pdf.js';
 import './Reader.css';
 
@@ -97,7 +98,6 @@ export default function Reader() {
 
   if (!asset) return <div className="reader-layout-modern">Asset not found.</div>;
 
-  // If NO HTML content exists but there IS a PDF, we might want to show a PDF viewer or message
   if (!asset.content_json && asset.pdf_url) {
     return (
       <div className="reader-layout-modern pdf-only">
@@ -107,6 +107,7 @@ export default function Reader() {
         </header>
         <div className="pdf-fallback-container animate-reveal">
           <div className="fallback-card glass-panel">
+            <ArchiveSeal className="seal-animated" size={80} />
             <FileText size={64} color="var(--color-accent-amber)" />
             <h2>Document Available as PDF</h2>
             <p>This asset is currently only available in PDF format for download.</p>
@@ -136,7 +137,7 @@ export default function Reader() {
         <div className="top-bar-right">
           <button className="btn-action-gold" onClick={handleDownload} disabled={generating}>
             {generating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-            {generating ? 'Processing...' : (asset.pdf_url ? 'Download Original PDF' : 'Generate PDF')}
+            {generating ? 'Processing...' : (asset.pdf_url ? 'Original PDF' : 'Generate PDF')}
           </button>
           
           <div className="lang-selector-premium">
@@ -163,6 +164,7 @@ export default function Reader() {
       <main className="document-viewport">
         <article className="premium-doc-page animate-reveal" ref={readerRef}>
           <header className="doc-header">
+            <ArchiveSeal className="doc-seal-heritage" size={120} />
             <div className="doc-seal">IMPERIAL ARCHIVES</div>
             <h1 className="doc-title">{content.title}</h1>
             <div className="doc-meta">
@@ -179,6 +181,7 @@ export default function Reader() {
           <footer className="doc-footer">
             <div className="footer-line"></div>
             <p>© 2025 Imperial Calcutta Archives</p>
+            <YellowTaxi className="footer-taxi-mini" size={40} />
           </footer>
         </article>
       </main>

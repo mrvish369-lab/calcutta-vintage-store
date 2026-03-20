@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 import { Download, Eye, Loader2, Sparkles, BookOpen, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { HowrahBridge, YellowTaxi, CalcuttaTram } from '../components/HeritageIcons';
 import './StoreFront.css';
 
 export default function StoreFront() {
@@ -36,13 +37,25 @@ export default function StoreFront() {
       
       <main className="store-main container">
         <section className="hero-modern animate-reveal">
+          <div className="hero-heritage-bg">
+            <HowrahBridge className="bridge-motif top-right" size={300} color="rgba(212, 160, 23, 0.05)" />
+            <HowrahBridge className="bridge-motif bottom-left" size={400} color="rgba(212, 160, 23, 0.03)" />
+          </div>
+
           <div className="hero-glass glass-panel">
-            <span className="badge-vintage"><Sparkles size={14} /> Established 1920</span>
+            <div className="hero-top">
+              <span className="badge-vintage"><Sparkles size={14} /> Established 1920</span>
+              <CalcuttaTram className="tram-animated" />
+            </div>
             <h1 className="hero-display-title">Imperial <br/><span>Calcutta</span> Archives</h1>
             <p className="hero-description">
               A premium repository of rare West Bengal manuscripts, real estate market insights, 
               and historical digital assets. Curated with precision, delivered with elegance.
             </p>
+            <div className="hero-reactive-footer">
+              <YellowTaxi className="taxi-animated" />
+              <div className="road-line"></div>
+            </div>
           </div>
         </section>
 
@@ -105,6 +118,23 @@ export default function StoreFront() {
           )}
         </section>
       </main>
+
+      <footer className="heritage-footer container">
+        <div className="footer-content glass-panel">
+          <div className="footer-left">
+            <h3>Imperial Calcutta</h3>
+            <p>Preserving history, one archive at a time.</p>
+          </div>
+          <CalcuttaTram className="footer-tram" size={60} />
+          <div className="footer-right">
+            <div className="footer-links">
+              <a href="#">Archives</a>
+              <a href="#">Market Intelligence</a>
+              <a href="#">Legal</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
