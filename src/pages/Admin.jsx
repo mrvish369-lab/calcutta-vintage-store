@@ -5,6 +5,7 @@ import {
   FileIcon, Image as ImageIcon, LayoutDashboard, Send, Edit3, X 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { HowrahBridge } from '../components/HeritageIcons';
 import './Admin.css';
 
 export default function Admin() {
@@ -93,7 +94,6 @@ export default function Admin() {
       let finalCoverUrl = editingId ? assets.find(a => a.id === editingId)?.cover_url : null;
       let finalHtmlContent = htmlContent;
 
-      // 1. Upload Cover Image (if new)
       if (coverFile) {
         const fileExt = coverFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -104,12 +104,10 @@ export default function Admin() {
         finalCoverUrl = publicUrl;
       }
 
-      // 2. Handle HTML File Upload (if any)
       if (htmlFile) {
         finalHtmlContent = await readHtmlFile(htmlFile);
       }
 
-      // 3. Handle PDF File Upload (if any)
       if (pdfFile) {
         const fileExt = pdfFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -120,7 +118,6 @@ export default function Admin() {
         finalPdfUrl = publicUrl;
       }
 
-      // 4. Update or Insert
       const assetPayload = { 
         title: formData.title, 
         author: formData.author, 
@@ -163,6 +160,10 @@ export default function Admin() {
       <Header />
       
       <main className="admin-main container animate-reveal">
+        <div className="admin-heritage-motif">
+          <HowrahBridge size={200} color="rgba(212, 160, 23, 0.05)" />
+        </div>
+
         <header className="admin-header-modern">
           <div className="admin-title-area">
             <h1 className="hero-display-title">Admin <span>Dashboard</span></h1>
