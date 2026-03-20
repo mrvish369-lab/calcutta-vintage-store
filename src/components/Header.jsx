@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, UserCircle } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import './Header.css';
 
 export default function Header() {
@@ -13,7 +13,6 @@ export default function Header() {
         </Link>
         <nav className="main-nav">
           <Link to="/" className="nav-link">Collection</Link>
-          <Link to="/admin" className="nav-link"><UserCircle size={20} /> Admin</Link>
         </nav>
       </div>
     </header>
