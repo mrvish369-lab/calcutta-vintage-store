@@ -179,6 +179,10 @@
   animation: reveal 0.8s forwards;
 }
 
+.clickable-card {
+  cursor: pointer;
+}
+
 .asset-card:hover {
   transform: translateY(-15px);
   background: rgba(255, 255, 255, 0.05);
