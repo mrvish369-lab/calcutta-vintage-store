@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Languages, Loader2, Download, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Languages, Loader2, Download, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import html2pdf from 'html2pdf.js';
 import './Reader.css';
@@ -19,7 +19,6 @@ export default function Reader() {
   }, [id]);
 
   useEffect(() => {
-    // If redirected with ?download=true, trigger download once loaded
     if (!loading && asset && searchParams.get('download') === 'true') {
       handleDownload();
     }
@@ -39,8 +38,14 @@ export default function Reader() {
 
   const handleDownload = async () => {
     if (!asset) return;
-    setGenerating(true);
+    
+    // If direct PDF exists, just open it
+    if (asset.pdf_url && !searchParams.get('download')) {
+      window.open(asset.pdf_url, '_blank');
+      return;
+    }
 
+    setGenerating(true);
     const fileName = `${asset.title.replace(/\s+/g, '_')}.pdf`;
 
     try {
@@ -50,11 +55,9 @@ export default function Reader() {
         .list('cached-pdfs', { search: fileName });
 
       if (existingPdf && existingPdf.length > 0) {
-        // Download existing
         const { data: { publicUrl } } = supabase.storage
           .from('pdf-assets')
           .getPublicUrl(`cached-pdfs/${fileName}`);
-        
         window.open(publicUrl, '_blank');
       } else {
         // 2. Generate PDF from HTML
@@ -70,19 +73,13 @@ export default function Reader() {
         const pdfBlob = await html2pdf().from(element).set(opt).output('blob');
 
         // 3. Cache to Supabase
-        const { error: uploadError } = await supabase.storage
+        await supabase.storage
           .from('pdf-assets')
           .upload(`cached-pdfs/${fileName}`, pdfBlob, {
             contentType: 'application/pdf',
             upsert: true
           });
 
-        if (uploadError) console.error('Failed to cache PDF:', uploadError);
-
-        // 4. Update Asset in DB (optional: save the cached URL)
-        await supabase.from('assets').update({ pdf_url: fileName }).eq('id', id);
-
-        // 5. Save locally for user
         const url = URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
@@ -99,6 +96,28 @@ export default function Reader() {
   if (loading) return <div className="reader-layout-modern-loading"><Loader2 className="animate-spin" size={64} /></div>;
 
   if (!asset) return <div className="reader-layout-modern">Asset not found.</div>;
+
+  // If NO HTML content exists but there IS a PDF, we might want to show a PDF viewer or message
+  if (!asset.content_json && asset.pdf_url) {
+    return (
+      <div className="reader-layout-modern pdf-only">
+        <header className="reader-top-bar glass-panel">
+          <Link to="/" className="btn-back"><ArrowLeft size={18} /> Exit</Link>
+          <div className="asset-path">{asset.title} (PDF)</div>
+        </header>
+        <div className="pdf-fallback-container animate-reveal">
+          <div className="fallback-card glass-panel">
+            <FileText size={64} color="var(--color-accent-amber)" />
+            <h2>Document Available as PDF</h2>
+            <p>This asset is currently only available in PDF format for download.</p>
+            <button className="btn-premium" onClick={() => window.open(asset.pdf_url, '_blank')}>
+              Open PDF Document
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const content = (asset.content_json && asset.content_json[lang]) || {
     title: asset.title,
@@ -117,7 +136,7 @@ export default function Reader() {
         <div className="top-bar-right">
           <button className="btn-action-gold" onClick={handleDownload} disabled={generating}>
             {generating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-            {generating ? 'Generating PDF...' : 'Download PDF'}
+            {generating ? 'Processing...' : (asset.pdf_url ? 'Download Original PDF' : 'Generate PDF')}
           </button>
           
           <div className="lang-selector-premium">
@@ -136,7 +155,7 @@ export default function Reader() {
           <div className="gen-popup glass-panel">
             <Loader2 className="animate-spin" size={32} />
             <h3>Processing Document...</h3>
-            <p>We are converting this interactive HTML into a high-quality PDF for your archive.</p>
+            <p>Finalizing the high-quality digital copy.</p>
           </div>
         </div>
       )}
@@ -159,7 +178,7 @@ export default function Reader() {
           
           <footer className="doc-footer">
             <div className="footer-line"></div>
-            <p>© 2025 Imperial Calcutta Archives - Digitized Assets</p>
+            <p>© 2025 Imperial Calcutta Archives</p>
           </footer>
         </article>
       </main>

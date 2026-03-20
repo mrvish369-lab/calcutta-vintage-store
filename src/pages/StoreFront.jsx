@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
-import { Download, Eye, Loader2, Sparkles, BookOpen } from 'lucide-react';
+import { Download, Eye, Loader2, Sparkles, BookOpen, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './StoreFront.css';
 
@@ -25,6 +25,10 @@ export default function StoreFront() {
     setLoading(false);
   }
 
+  const handleDownloadDirect = (url) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="store-bg">
       <div className="bg-grain"></div>
@@ -39,17 +43,6 @@ export default function StoreFront() {
               A premium repository of rare West Bengal manuscripts, real estate market insights, 
               and historical digital assets. Curated with precision, delivered with elegance.
             </p>
-            <div className="hero-stats">
-              <div className="stat-item">
-                <span className="stat-num">{assets.length}</span>
-                <span className="stat-label">Assets Live</span>
-              </div>
-              <div className="stat-item divider"></div>
-              <div className="stat-item">
-                <span className="stat-num">HD</span>
-                <span className="stat-label">HTML-to-PDF</span>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -67,20 +60,31 @@ export default function StoreFront() {
                 <article key={asset.id} className="asset-card glass-panel" style={{animationDelay: `${index * 0.1}s`}}>
                   <div className="card-media">
                     <div className="card-overlay"></div>
-                    <BookOpen className="card-icon" size={40} />
-                    <div className="card-badge">Digital Asset</div>
+                    {asset.content_json ? <BookOpen className="card-icon" size={40} /> : <FileText className="card-icon" size={40} />}
+                    <div className="card-badge">{asset.content_json ? 'Interactive' : 'Document'}</div>
                   </div>
                   <div className="card-body">
                     <h3 className="asset-name">{asset.title}</h3>
                     <p className="asset-meta">By {asset.author || 'Imperial Archive'} • {asset.year || '2025'}</p>
                     
                     <div className="card-actions">
-                      <button className="btn-glass-small" onClick={() => navigate(`/reader/${asset.id}`)}>
-                        <Eye size={16} /> View Online
-                      </button>
-                      <button className="btn-premium-small" onClick={() => navigate(`/reader/${asset.id}?download=true`)}>
-                        <Download size={16} /> Get PDF
-                      </button>
+                      {asset.content_json && (
+                        <button className="btn-glass-small" onClick={() => navigate(`/reader/${asset.id}`)}>
+                          <Eye size={16} /> View Online
+                        </button>
+                      )}
+                      
+                      {asset.pdf_url ? (
+                        <button className="btn-premium-small" onClick={() => handleDownloadDirect(asset.pdf_url)}>
+                          <Download size={16} /> Download PDF
+                        </button>
+                      ) : (
+                        asset.content_json && (
+                          <button className="btn-premium-small" onClick={() => navigate(`/reader/${asset.id}?download=true`)}>
+                            <Download size={16} /> Generate PDF
+                          </button>
+                        )
+                      )}
                     </div>
                   </div>
                 </article>

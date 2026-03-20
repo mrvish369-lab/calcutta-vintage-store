@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import { Upload, Plus, FileText, CheckCircle, Loader2, Code, Trash2 } from 'lucide-react';
+import { Upload, Plus, FileText, CheckCircle, Loader2, Code, Trash2, FileIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Admin.css';
 
@@ -9,6 +9,8 @@ export default function Admin() {
   const [assets, setAssets] = useState([]);
   const [formData, setFormData] = useState({ title: '', author: '', year: '' });
   const [htmlContent, setHtmlContent] = useState('');
+  const [pdfFile, setPdfFile] = useState(null);
+  const [htmlFile, setHtmlFile] = useState(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -31,10 +33,19 @@ export default function Admin() {
     else fetchAssets();
   };
 
+  const readHtmlFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handlePush = async (e) => {
     e.preventDefault();
-    if (!htmlContent || !formData.title) {
-      setMessage('Please provide a title and HTML content.');
+    if (!formData.title) {
+      setMessage('Please provide at least a title.');
       return;
     }
 
@@ -42,7 +53,34 @@ export default function Admin() {
     setMessage('');
 
     try {
-      // Save Metadata and HTML directly to DB
+      let finalPdfUrl = null;
+      let finalHtmlContent = htmlContent;
+
+      // 1. Handle HTML File Upload (if any)
+      if (htmlFile) {
+        finalHtmlContent = await readHtmlFile(htmlFile);
+      }
+
+      // 2. Handle PDF File Upload (if any)
+      if (pdfFile) {
+        const fileExt = pdfFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `manual-pdfs/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('pdf-assets')
+          .upload(filePath, pdfFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('pdf-assets')
+          .getPublicUrl(filePath);
+        
+        finalPdfUrl = publicUrl;
+      }
+
+      // 3. Save to DB
       const { error: dbError } = await supabase
         .from('assets')
         .insert([
@@ -50,22 +88,19 @@ export default function Admin() {
             title: formData.title, 
             author: formData.author, 
             year: formData.year, 
-            content_json: {
-              en: { 
-                title: formData.title, 
-                chapter: "Interactive Report", 
-                body: htmlContent // The actual HTML string
-              },
-              bn: { title: formData.title, chapter: "রিপোর্ট", body: "বাংলা শীঘ্রই আসছে।" },
-              hi: { title: formData.title, chapter: "रिपोर्ट", body: "हिंदी जल्द ही आ रही है।" }
-            } 
+            pdf_url: finalPdfUrl,
+            content_json: finalHtmlContent ? {
+              en: { title: formData.title, chapter: "Interactive Content", body: finalHtmlContent }
+            } : null
           }
         ]);
 
       if (dbError) throw dbError;
 
-      setMessage('Digital asset pushed successfully!');
+      setMessage('Asset broadcasted successfully!');
       setHtmlContent('');
+      setPdfFile(null);
+      setHtmlFile(null);
       setFormData({ title: '', author: '', year: '' });
       fetchAssets();
     } catch (error) {
@@ -83,16 +118,17 @@ export default function Admin() {
       <main className="admin-main container animate-reveal">
         <header className="admin-header">
           <h1 className="hero-display-title" style={{fontSize: '3rem'}}>Admin <span>Portal</span></h1>
+          <p className="admin-subtitle">Distribute HTML interactive reports or pure PDF assets.</p>
         </header>
 
         <div className="admin-row">
           <section className="admin-left glass-panel">
-            <h2><Plus size={20} /> Push New HTML Asset</h2>
+            <h2><Plus size={20} /> Create New Distribution</h2>
             <form onSubmit={handlePush} className="upload-form">
               <div className="form-group-full">
                 <input 
                   type="text" 
-                  placeholder="Asset Title (e.g. Kolkata Market Update Oct 2025)" 
+                  placeholder="Asset Title" 
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="admin-input-premium"
@@ -102,7 +138,7 @@ export default function Admin() {
               <div className="form-group-duo">
                 <input 
                   type="text" 
-                  placeholder="Author/Source" 
+                  placeholder="Author" 
                   value={formData.author}
                   onChange={(e) => setFormData({...formData, author: e.target.value})}
                   className="admin-input-premium"
@@ -116,40 +152,52 @@ export default function Admin() {
                 />
               </div>
 
+              <div className="upload-options-grid">
+                <div className={`file-drop-zone ${pdfFile ? 'has-file' : ''}`}>
+                  <FileText size={24} />
+                  <span>{pdfFile ? pdfFile.name : "Attach PDF (Optional)"}</span>
+                  <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files[0])} />
+                </div>
+                <div className={`file-drop-zone ${htmlFile ? 'has-file' : ''}`}>
+                  <Code size={24} />
+                  <span>{htmlFile ? htmlFile.name : "Attach HTML (Optional)"}</span>
+                  <input type="file" accept=".html" onChange={(e) => setHtmlFile(e.target.files[0])} />
+                </div>
+              </div>
+
               <div className="editor-container">
-                <label><Code size={16} /> HTML Content (Paste from your editor)</label>
+                <label>Or Paste HTML Manually</label>
                 <textarea 
                   className="html-editor"
-                  placeholder="<div><h1>Report</h1><p>Market is booming...</p></div>"
+                  placeholder="<div>Content here...</div>"
                   value={htmlContent}
                   onChange={(e) => setHtmlContent(e.target.value)}
-                  rows="12"
-                  required
+                  rows="8"
                 ></textarea>
               </div>
 
               <button type="submit" className="btn-premium push-btn" disabled={uploading}>
-                {uploading ? <Loader2 className="animate-spin" /> : "Broadcast to Audience"}
+                {uploading ? <Loader2 className="animate-spin" /> : "Verify & Broadcast"}
               </button>
               {message && <p className="status-msg">{message}</p>}
             </form>
           </section>
 
           <section className="admin-right glass-panel">
-            <h2><FileText size={20} /> Active Distribution</h2>
+            <h2><FileIcon size={20} /> Audit Trail</h2>
             <div className="asset-scroll-list">
               {assets.map(asset => (
                 <div key={asset.id} className="admin-asset-item glass-panel">
                   <div className="asset-info">
                     <h4>{asset.title}</h4>
-                    <p>{new Date(asset.created_at).toLocaleDateString()}</p>
+                    <div className="asset-types">
+                      {asset.pdf_url && <span className="type-dot pdf">PDF</span>}
+                      {asset.content_json && <span className="type-dot html">HTML</span>}
+                    </div>
                   </div>
-                  <button className="btn-delete" onClick={() => handleDelete(asset.id)}>
-                    <Trash2 size={16} />
-                  </button>
+                  <button className="btn-delete" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
                 </div>
               ))}
-              {assets.length === 0 && <p className="empty-hint">No active distributions.</p>}
             </div>
           </section>
         </div>
