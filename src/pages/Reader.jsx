@@ -43,7 +43,6 @@ export default function Reader() {
   }
 
   async function fetchSuggestions() {
-    // Fetch a bit more to filter out the current ID in memory
     const { data, error } = await supabase
       .from('assets')
       .select('*')
@@ -53,7 +52,6 @@ export default function Reader() {
     if (error) {
       console.error('Error fetching suggestions:', error);
     } else {
-      // Filter out current asset and take top 3
       const filtered = (data || []).filter(item => item.id !== id).slice(0, 3);
       setSuggestions(filtered);
     }
@@ -206,31 +204,35 @@ export default function Reader() {
           )}
         </div>
 
-        {/* RELEVANT SUGGESTIONS AT THE BOTTOM */}
-        {suggestions.length > 0 && (
-          <section className="discover-archives-section animate-reveal">
-            <div className="section-header-mini">
-              <div className="dec-line"></div>
-              <h3>Explore Related Manuscripts</h3>
-              <div className="dec-line"></div>
-            </div>
-            
-            <div className="discover-grid">
-              {suggestions.map((item) => (
-                <div key={item.id} className="discover-card glass-panel" onClick={() => navigate(`/reader/${item.id}`)}>
-                  <div className="d-cover">
-                    {item.cover_url ? <img src={item.cover_url} alt="" /> : <BookOpen size={24} color="var(--color-accent-amber)" opacity="0.3" />}
-                  </div>
-                  <div className="d-info">
-                    <h4>{item.title}</h4>
-                    <p>{item.author} • {item.year}</p>
-                    <button className="btn-d-view"><Eye size={12}/> Dive In</button>
-                  </div>
+        {/* ALWAYS SHOW EXPLORE SECTION IF MINIMUM 1 OTHER ASSET EXISTS */}
+        <section className={`discover-archives-section animate-reveal ${suggestions.length > 0 ? 'visible' : 'hidden'}`}>
+          <div className="section-header-mini">
+            <div className="dec-line"></div>
+            <h3>Explore Related Manuscripts</h3>
+            <div className="dec-line"></div>
+          </div>
+          
+          <div className="discover-grid">
+            {suggestions.map((item) => (
+              <div key={item.id} className="discover-card glass-panel" onClick={() => navigate(`/reader/${item.id}`)}>
+                <div className="d-cover">
+                  {item.cover_url ? <img src={item.cover_url} alt="" /> : <BookOpen size={24} color="var(--color-accent-amber)" opacity="0.3" />}
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+                <div className="d-info">
+                  <h4>{item.title}</h4>
+                  <p>{item.author} • {item.year}</p>
+                  <button className="btn-d-view"><Eye size={12}/> Dive In</button>
+                </div>
+              </div>
+            ))}
+            {suggestions.length === 0 && (
+              <div className="discover-empty glass-panel">
+                <Sparkles size={16} />
+                <p>Add more manuscripts to the archives to enable related discovery.</p>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );

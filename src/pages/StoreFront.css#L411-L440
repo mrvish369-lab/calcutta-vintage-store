@@ -1,0 +1,31 @@
+/* UX Improvements */
+
+.clickable-card {
+  cursor: pointer;
+}
+
+.clickable-card:hover {
+  border-color: var(--color-accent-amber);
+}
+
+.discover-archives-section.hidden {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.discover-empty {
+  grid-column: 1 / -1;
+  padding: 3rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  items-center: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--glass-border);
+}
+
+.discover-empty p {
+  opacity: 0.4;
+  font-size: 0.9rem;
+}

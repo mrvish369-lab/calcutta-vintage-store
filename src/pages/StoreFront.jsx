@@ -27,7 +27,8 @@ export default function StoreFront() {
     setLoading(false);
   }
 
-  const handleDownloadDirect = (url) => {
+  const handleDownloadDirect = (url, e) => {
+    e.stopPropagation();
     window.open(url, '_blank');
   };
 
@@ -37,6 +38,10 @@ export default function StoreFront() {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleOpenReader = (id) => {
+    navigate(`/reader/${id}`);
   };
 
   return (
@@ -79,7 +84,12 @@ export default function StoreFront() {
           ) : (
             <div className="modern-grid">
               {assets.map((asset, index) => (
-                <article key={asset.id} className="asset-card glass-panel" style={{animationDelay: `${index * 0.1}s`}}>
+                <article 
+                  key={asset.id} 
+                  className="asset-card glass-panel clickable-card" 
+                  onClick={() => handleOpenReader(asset.id)}
+                  style={{animationDelay: `${index * 0.1}s`}}
+                >
                   <div className="card-media">
                     <div className="card-overlay"></div>
                     {asset.cover_url ? (
@@ -89,7 +99,7 @@ export default function StoreFront() {
                         {asset.content_json ? <BookOpen className="card-icon" size={40} /> : <FileText className="card-icon" size={40} />}
                       </>
                     )}
-                    <div className="card-badge">{asset.content_json ? 'Interactive' : 'Document'}</div>
+                    <div className="card-badge">{asset.content_json ? 'Interactive' : 'Archive PDF'}</div>
                     <button className={`btn-card-share ${copiedId === asset.id ? 'active' : ''}`} onClick={(e) => handleShare(asset.id, e)}>
                       <Share2 size={16} />
                       {copiedId === asset.id && <span className="share-toast">Link Copied!</span>}
@@ -100,22 +110,14 @@ export default function StoreFront() {
                     <p className="asset-meta">By {asset.author || 'Imperial Archive'} • {asset.year || '2025'}</p>
                     
                     <div className="card-actions">
-                      {asset.content_json && (
-                        <button className="btn-glass-small" onClick={() => navigate(`/reader/${asset.id}`)}>
-                          <Eye size={16} /> View Online
-                        </button>
-                      )}
+                      <button className="btn-glass-small" onClick={(e) => { e.stopPropagation(); handleOpenReader(asset.id); }}>
+                        <Eye size={16} /> View Online
+                      </button>
                       
-                      {asset.pdf_url ? (
-                        <button className="btn-premium-small" onClick={() => handleDownloadDirect(asset.pdf_url)}>
+                      {asset.pdf_url && (
+                        <button className="btn-premium-small" onClick={(e) => handleDownloadDirect(asset.pdf_url, e)}>
                           <Download size={16} /> Get PDF
                         </button>
-                      ) : (
-                        asset.content_json && (
-                          <button className="btn-premium-small" onClick={() => navigate(`/reader/${asset.id}?download=true`)}>
-                            <Download size={16} /> Get PDF
-                          </button>
-                        )
                       )}
                     </div>
                   </div>
