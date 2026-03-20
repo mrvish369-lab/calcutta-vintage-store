@@ -60,7 +60,13 @@ export default function StoreFront() {
                 <article key={asset.id} className="asset-card glass-panel" style={{animationDelay: `${index * 0.1}s`}}>
                   <div className="card-media">
                     <div className="card-overlay"></div>
-                    {asset.content_json ? <BookOpen className="card-icon" size={40} /> : <FileText className="card-icon" size={40} />}
+                    {asset.cover_url ? (
+                      <img src={asset.cover_url} alt={asset.title} className="card-cover-image" />
+                    ) : (
+                      <>
+                        {asset.content_json ? <BookOpen className="card-icon" size={40} /> : <FileText className="card-icon" size={40} />}
+                      </>
+                    )}
                     <div className="card-badge">{asset.content_json ? 'Interactive' : 'Document'}</div>
                   </div>
                   <div className="card-body">
@@ -76,12 +82,12 @@ export default function StoreFront() {
                       
                       {asset.pdf_url ? (
                         <button className="btn-premium-small" onClick={() => handleDownloadDirect(asset.pdf_url)}>
-                          <Download size={16} /> Download PDF
+                          <Download size={16} /> Get PDF
                         </button>
                       ) : (
                         asset.content_json && (
                           <button className="btn-premium-small" onClick={() => navigate(`/reader/${asset.id}?download=true`)}>
-                            <Download size={16} /> Generate PDF
+                            <Download size={16} /> Get PDF
                           </button>
                         )
                       )}
