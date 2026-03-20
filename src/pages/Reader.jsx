@@ -64,7 +64,7 @@ export default function Reader() {
         setSuggestions(filtered);
       }
     } catch (err) {
-      console.warn("Suggestions fetch failed - continuing without discovery section.");
+      console.warn("Suggestions fetch failed.");
     }
   }
 
@@ -86,36 +86,20 @@ export default function Reader() {
     const fileName = `${(asset.title || 'manuscript').replace(/\s+/g, '_')}.pdf`;
 
     try {
-      // Dynamic import to prevent bundle issues
       const html2pdf = (await import('html2pdf.js')).default;
-      
-      const { data: existingPdf } = await supabase.storage
-        .from('pdf-assets')
-        .list('cached-pdfs', { search: fileName });
+      const element = readerRef.current;
+      if (!element) throw new Error("Content not available for generation.");
 
-      if (existingPdf && existingPdf.length > 0) {
-        const { data: { publicUrl } } = supabase.storage
-          .from('pdf-assets')
-          .getPublicUrl(`cached-pdfs/${fileName}`);
-        window.open(publicUrl, '_blank');
-      } else {
-        const element = readerRef.current;
-        if (!element) throw new Error("Content not available for generation.");
-
-        const opt = {
-          margin: 1,
-          filename: fileName,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        await html2pdf().from(element).set(opt).save();
-        
-        // Caching logic is optional here for performance, omitting for maximum stability
-      }
+      const opt = {
+        margin: 1,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      await html2pdf().from(element).set(opt).save();
     } catch (err) {
       console.error('PDF Generation failed:', err);
-      alert("Error generating PDF. Opening original document instead.");
       if (asset.pdf_url) window.open(asset.pdf_url, '_blank');
     } finally {
       setGenerating(false);
@@ -125,7 +109,6 @@ export default function Reader() {
   if (loading) return (
     <div className="reader-layout-modern-loading">
       <Loader2 className="animate-spin" size={64} color="var(--color-accent-gold)" />
-      <p style={{ marginTop: '2rem', fontStyle: 'italic', opacity: 0.6 }}>Consulting the Imperial Archives...</p>
     </div>
   );
 
@@ -133,7 +116,7 @@ export default function Reader() {
     <div className="reader-layout-modern-error">
       <AlertCircle size={48} color="var(--color-imperial-red)" />
       <h2>Archive Unavailable</h2>
-      <p>{error || "This specific manuscript is currently out of reach."}</p>
+      <p>{error}</p>
       <Link to="/" className="btn-back" style={{ marginTop: '2rem' }}>Return to Library</Link>
     </div>
   );
@@ -141,7 +124,7 @@ export default function Reader() {
   const content = (asset.content_json && asset.content_json[lang]) || {
     title: asset.title || "Untitled Document",
     chapter: "Archive",
-    body: "No interactive summary available. Please refer to the PDF manuscript."
+    body: "No interactive summary available."
   };
 
   const isOnlyPdf = !asset.content_json;
@@ -190,50 +173,53 @@ export default function Reader() {
       )}
       
       <main className="document-viewport reader-discovery-layout">
-        <div className="reader-main-content">
-          {isOnlyPdf ? (
-            <div className="pdf-fallback-container animate-reveal">
-              <div className="fallback-card glass-panel">
-                <ArchiveSeal className="seal-animated" size={80} />
-                <FileText size={64} color="var(--color-accent-amber)" />
-                <h2>Document Available as PDF</h2>
-                <p>This manuscript is currently preserved as a direct PDF document.</p>
+        <div className="reader-integrated-viewer glass-panel animate-reveal">
+          <div className="viewer-scroll-container">
+            {isOnlyPdf ? (
+              <div className="pdf-viewer-frame">
                 {asset.pdf_url ? (
-                  <button className="btn-premium-gold" onClick={() => window.open(asset.pdf_url, '_blank')}>
-                    Open PDF Document
-                  </button>
+                  <iframe 
+                    src={`${asset.pdf_url}#toolbar=0`} 
+                    title={asset.title}
+                    width="100%" 
+                    height="100%"
+                    frameBorder="0"
+                  ></iframe>
                 ) : (
-                  <p className="mt-4 italic opacity-40">Document link missing.</p>
+                  <div className="viewer-error">
+                    <FileText size={48} />
+                    <p>Document source link is unavailable.</p>
+                  </div>
                 )}
               </div>
-            </div>
-          ) : (
-            <article className="premium-doc-page animate-reveal" ref={readerRef}>
-              <header className="doc-header">
-                <ArchiveSeal className="doc-seal-heritage" size={120} />
-                <div className="doc-seal">IMPERIAL ARCHIVES</div>
-                <h1 className="doc-title">{content.title}</h1>
-                <div className="doc-meta">
-                  <span>{asset.author || 'Imperial Correspondent'}</span>
-                  <span className="dot"></span>
-                  <span>Kolkata, {asset.year || '2025'}</span>
-                </div>
-              </header>
+            ) : (
+              <article className="premium-doc-page" ref={readerRef}>
+                <header className="doc-header">
+                  <ArchiveSeal className="doc-seal-heritage" size={120} />
+                  <div className="doc-seal">IMPERIAL ARCHIVES</div>
+                  <h1 className="doc-title">{content.title}</h1>
+                  <div className="doc-meta">
+                    <span>{asset.author || 'Imperial Correspondent'}</span>
+                    <span className="dot"></span>
+                    <span>Kolkata, {asset.year || '2025'}</span>
+                  </div>
+                </header>
 
-              <div className="doc-body-grid">
-                <div className="doc-column-main" dangerouslySetInnerHTML={{ __html: content.body }}></div>
-              </div>
-              
-              <footer className="doc-footer">
-                <div className="footer-line"></div>
-                <p>© 2025 Imperial Calcutta Archives</p>
-                <YellowTaxi className="footer-taxi-mini" size={40} />
-              </footer>
-            </article>
-          )}
+                <div className="doc-body-grid">
+                  <div className="doc-column-main" dangerouslySetInnerHTML={{ __html: content.body }}></div>
+                </div>
+                
+                <footer className="doc-footer">
+                  <div className="footer-line"></div>
+                  <p>© 2025 Imperial Calcutta Archives</p>
+                  <YellowTaxi className="footer-taxi-mini" size={40} />
+                </footer>
+              </article>
+            )}
+          </div>
         </div>
 
-        {/* Discovery System */}
+        {/* Discovery System - Now right below the viewer */}
         <section className={`discover-archives-section animate-reveal ${suggestions.length > 0 ? 'visible' : 'hidden'}`}>
           <div className="section-header-mini">
             <div className="dec-line"></div>
@@ -254,12 +240,6 @@ export default function Reader() {
                 </div>
               </div>
             ))}
-            {suggestions.length === 0 && (
-              <div className="discover-empty glass-panel">
-                <Sparkles size={16} color="var(--color-accent-gold)" />
-                <p>Add more manuscripts to the library to enable archival suggestions.</p>
-              </div>
-            )}
           </div>
         </section>
       </main>
