@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
-import { Download, Eye, Loader2, Sparkles, BookOpen, FileText } from 'lucide-react';
+import { Download, Eye, Loader2, Sparkles, BookOpen, FileText, Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { HowrahBridge, YellowTaxi, CalcuttaTram } from '../components/HeritageIcons';
 import './StoreFront.css';
@@ -10,6 +10,7 @@ export default function StoreFront() {
   const navigate = useNavigate();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     fetchAssets();
@@ -28,6 +29,14 @@ export default function StoreFront() {
 
   const handleDownloadDirect = (url) => {
     window.open(url, '_blank');
+  };
+
+  const handleShare = (id, e) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/reader/${id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
@@ -81,6 +90,10 @@ export default function StoreFront() {
                       </>
                     )}
                     <div className="card-badge">{asset.content_json ? 'Interactive' : 'Document'}</div>
+                    <button className={`btn-card-share ${copiedId === asset.id ? 'active' : ''}`} onClick={(e) => handleShare(asset.id, e)}>
+                      <Share2 size={16} />
+                      {copiedId === asset.id && <span className="share-toast">Link Copied!</span>}
+                    </button>
                   </div>
                   <div className="card-body">
                     <h3 className="asset-name">{asset.title}</h3>
