@@ -82,23 +82,23 @@
 
 /* Reader Frame with Heritage Motifs */
 .reader-frame-ios {
-  margin: 1.5rem auto;
-  width: calc(100% - 3rem);
-  max-width: 1000px;
-  height: 75vh;
+  margin: 0 auto 3rem;
+  width: calc(100% - 2rem);
+  max-width: 1400px;
+  height: 95vh;
   border-radius: var(--ios-radius) !important;
   overflow: hidden;
   position: relative;
   background: #111;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
 }
 
 @media (max-width: 768px) {
   .reader-frame-ios {
     width: 100%;
     margin: 0;
-    height: 70vh;
+    height: calc(100vh - 120px); /* Leave room for header and bottom bar feel */
     border-radius: 0 !important;
     border-left: none;
     border-right: none;
